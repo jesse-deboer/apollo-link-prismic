@@ -1,5 +1,5 @@
 {
-  "plugins": ["@babel/plugin-transform-spread", "babel-plugin-transform-es2015-spread", "babel-plugin-transform-object-rest-spread"],
+  "plugins":  ["@babel/plugin-transform-object-rest-spread"],
   "presets": [
     [
       "@babel/preset-env",
@@ -8,5 +8,5 @@
       }
     ],
     "minify"
-  ],
+  ]
 }
