@@ -1,5 +1,9 @@
-import { HttpLink } from 'apollo-link-http';
-import { setContext } from 'apollo-link-context';
+import {
+  HttpLink
+} from 'apollo-link-http';
+import {
+  setContext
+} from 'apollo-link-context';
 import Prismic from 'prismic-javascript';
 import removeWhiteSpace from './lib/removeWhiteSpace';
 
@@ -11,7 +15,7 @@ function parsePrismicEndpoint(endpoint) {
   const tokens = endpoint.match(PRISMIC_ENDPOINT_REG);
 
   if (tokens !== null && Array.isArray(tokens) && tokens.length === 3) {
-    const [/* endpoint */, repository, domain] = tokens;
+    const [ /* endpoint */ , repository, domain] = tokens;
 
     return `https://${repository}.cdn.${domain}`; // enforce the cdn
   }
@@ -19,7 +23,11 @@ function parsePrismicEndpoint(endpoint) {
   return null; // not from prismic ? returns null.
 }
 
-export function PrismicLink({ uri, accessToken, repositoryName }) {
+export function PrismicLink({
+  uri,
+  accessToken,
+  repositoryName
+}) {
 
   const prismicEndpoint = parsePrismicEndpoint(uri); // enforce cdn if it's the prismic endpoint
 
@@ -48,23 +56,65 @@ export function PrismicLink({ uri, accessToken, repositoryName }) {
     gqlEndpoint = uri;
   }
 
-  const prismicClient = Prismic.client(apiEndpoint, { accessToken });
+  const prismicClient = Prismic.client(apiEndpoint, {
+    accessToken
+  });
 
-  const prismicLink = setContext(
-    (request, options) => {
-      return prismicClient
-        .getApi()
-        .then(
-          (api) => ({
-            headers: {
-              'Prismic-ref': api.masterRef.ref,
-              ...options.headers,
-              ...(api.integrationFieldRef ? { 'Prismic-integration-field-ref' : api.integrationFieldRef } : {}),
-              ...(accessToken ? { Authorization: `Token ${accessToken}` } : {})
-            }
-          })
-        );
-    });
+  function ownKeys(object, enumerableOnly) {
+    var keys = Object.keys(object);
+    if (Object.getOwnPropertySymbols) {
+      var symbols = Object.getOwnPropertySymbols(object);
+      if (enumerableOnly) symbols = symbols.filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+      });
+      keys.push.apply(keys, symbols);
+    }
+    return keys;
+  }
+
+  function _objectSpread(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i] != null ? arguments[i] : {};
+      if (i % 2) {
+        ownKeys(Object(source), true).forEach(function (key) {
+          _defineProperty(target, key, source[key]);
+        });
+      } else if (Object.getOwnPropertyDescriptors) {
+        Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      } else {
+        ownKeys(Object(source)).forEach(function (key) {
+          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+        });
+      }
+    }
+    return target;
+  }
+
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+    return obj;
+  }
+
+  const prismicLink = setContext((request, options) => {
+    return prismicClient.getApi().then(api => ({
+      headers: _objectSpread({
+        'Prismic-ref': api.masterRef.ref
+      }, options.headers, {}, api.integrationFieldRef ? {
+        'Prismic-integration-field-ref': api.integrationFieldRef
+      } : {}, {}, accessToken ? {
+        Authorization: `Token ${accessToken}`
+      } : {})
+    }));
+  });
 
   const httpLink = new HttpLink({
     uri: gqlEndpoint,
